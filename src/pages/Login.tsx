@@ -2,6 +2,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import * as z from "zod";
 
+import { supabase } from "@/lib/supabase-client";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -27,6 +29,7 @@ export const formSchema = z.object({
 });
 
 export default function LoginPage() {
+  //const navigate = useNavigate();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -35,8 +38,18 @@ export default function LoginPage() {
     },
   });
 
-  function onSubmit(data: z.infer<typeof formSchema>) {
-    alert(JSON.stringify(data, null, 2));
+  async function onSubmit(data: z.infer<typeof formSchema>) {
+    const { data: loginData, error } = await supabase.auth.signInWithPassword({
+      email: data.email,
+      password: data.password,
+    });
+
+    if (error) {
+      console.log("Error signing up:", error.message);
+    } else {
+      alert("Account created! Check your email for verification link.");
+      console.log("Logged in:", loginData);
+    }
   }
 
   return (
