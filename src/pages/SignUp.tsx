@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import * as z from "zod";
-
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,6 +17,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { supabase } from "@/lib/supabase-client";
 
 export const formSchema = z
   .object({
@@ -36,6 +37,7 @@ export const formSchema = z
   });
 
 export default function SignUpPage() {
+  const navigate = useNavigate();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -44,12 +46,22 @@ export default function SignUpPage() {
     },
   });
 
-  function onSubmit(data: z.infer<typeof formSchema>) {
-    alert(JSON.stringify(data, null, 2));
+  async function onSubmit(data: z.infer<typeof formSchema>) {
+    const { error } = await supabase.auth.signUp({
+      email: data.email,
+      password: data.password,
+    });
+
+    if (error) {
+      console.log("Error signing up:", error.message);
+    } else {
+      alert("Account created! Check your email for verification link.");
+      navigate("/login");
+    }
   }
 
   return (
-    <div className="flex flex-col items-center justify-center h-full">
+    <div className="flex flex-col items-center justify-center">
       <Card className="w-full sm:max-w-md">
         <CardHeader>
           <CardTitle>Create Account</CardTitle>
